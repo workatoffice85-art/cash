@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سجل أيام العمل</title>
+  <style>
+    * { font-family: 'Segoe UI', Tahoma, sans-serif; box-sizing: border-box; }
+    body { background: #f8f9fa; padding: 20px; margin: 0; }
+    .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; color: #34495e; }
+    input, select, textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
+    button { background: #3498db; color: white; padding: 14px; border: none; border-radius: 8px; font-size: 18px; width: 100%; cursor: pointer; font-weight: 600; margin-top: 10px; }
+    button:hover { background: #2980b9; }
+    table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+    th, td { padding: 12px 15px; text-align: right; border-bottom: 1px solid #e0e0e0; }
+    th { background: #34495e; color: white; font-weight: 600; }
+    tr:hover { background: #f8f9fa; }
+    .success { background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; text-align: center; margin: 15px 0; display: none; }
+    .summary { background: #e3f2fd; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center; font-size: 18px; font-weight: bold; color: #2c3e50; }
+    @media (max-width: 600px) {
+      .container { padding: 15px; margin: 10px; }
+      table { font-size: 14px; }
+      th, td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📝 سجل أيام العمل</h1>
+    
+    <div class="success" id="successMsg">✓ تم الحفظ بنجاح!</div>
+    
+    <div class="form-group">
+      <label for="date">التاريخ</label>
+      <input type="date" id="date" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="location">الموقع</label>
+      <select id="location" required>
+        <option value="">اختر الموقع</option>
+        <option value="موقع الدقي">موقع الدقي</option>
+        <option value="موقع المعادي">موقع المعادي</option>
+        <option value="موقع المهندسين">موقع المهندسين</option>
+        <option value="موقع مدينة نصر">موقع مدينة نصر</option>
+        <option value="موقع التجمع">موقع التجمع</option>
+        <option value="أخرى">أخرى</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="hours">عدد الساعات</label>
+      <input type="number" id="hours" min="1" max="24" value="8" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="expenses">المصروفات (جنيه)</label>
+      <input type="number" id="expenses" min="0" placeholder="0" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="notes">ملاحظات</label>
+      <textarea id="notes" rows="3" placeholder="مثال: نقل مواد، اجتماع، شراء مستلزمات..."></textarea>
+    </div>
+    
+    <button onclick="saveEntry()">حفظ اليوم</button>
+    
+    <div class="summary" id="summary">إجمالي الأيام: <span id="totalDays">0</span> | إجمالي المصروفات: <span id="totalExpenses">0</span> ج.م</div>
+    
+    <h2 style="margin-top: 30px; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">السجلات السابقة</h2>
+    <div id="records" style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الموقع</th>
+            <th>الساعات</th>
+            <th>المصروفات</th>
+            <th>الملاحظات</th>
+          </tr>
+        </thead>
+        <tbody id="recordsBody">
+          <tr>
+            <td colspan="5" style="text-align: center; color: #95a5a6;">لا توجد سجلات حتى الآن</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // ⚠️ غير الرابط ده بعد ما تعمل الـ Web App على جوجل شيتس
+    const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+    
+    // تلقائي: التاريخ اليوم
+    document.getElementById('date').valueAsDate = new Date();
+    
+    function saveEntry() {
+      const data = {
+        date: document.getElementById('date').value,
+        location: document.getElementById('location').value,
+        hours: document.getElementById('hours').value,
+        expenses: document.getElementById('expenses').value,
+        notes: document.getElementById('notes').value || '-'
+      };
+      
+      if (!data.date || !data.location || !data.hours || !data.expenses) {
+        alert('⚠️ يرجى ملء جميع الحقول المطلوبة');
+        return;
+      }
+      
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.status === 'success') {
+          document.getElementById('successMsg').style.display = 'block';
+          setTimeout(() => {
+            document.getElementById('successMsg').style.display = 'none';
+            document.getElementById('expenses').value = '';
+            document.getElementById('notes').value = '';
+            loadRecords();
+          }, 1500);
+        } else {
+          alert('❌ حدث خطأ أثناء الحفظ');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('❌ تأكد من تفعيل الـ Web App في جوجل شيتس');
+      });
+    }
+    
+    function loadRecords() {
+      fetch(SCRIPT_URL)
+      .then(response => response.json())
+      .then(data => {
+        const body = document.getElementById('recordsBody');
+        if (data.length === 0) {
+          body.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #95a5a6;">لا توجد سجلات حتى الآن</td></tr>';
+          document.getElementById('totalDays').textContent = '0';
+          document.getElementById('totalExpenses').textContent = '0';
+          return;
+        }
+        
+        let html = '';
+        let totalExp = 0;
+        data.forEach(record => {
+          html += `<tr>
+            <td>${record.date}</td>
+            <td>${record.location}</td>
+            <td>${record.hours}</td>
+            <td>${Number(record.expenses).toLocaleString()} ج.م</td>
+            <td>${record.notes || '-'}</td>
+          </tr>`;
+          totalExp += Number(record.expenses);
+        });
+        
+        body.innerHTML = html;
+        document.getElementById('totalDays').textContent = data.length;
+        document.getElementById('totalExpenses').textContent = totalExp.toLocaleString();
+      })
+      .catch(error => console.error('Error loading records:', error));
+    }
+    
+    // تحميل السجلات أول ما تفتح الصفحة
+    window.onload = loadRecords;
+  </script>
+</body>
+</html>
