@@ -7,9 +7,6 @@
   <style>
     * { font-family: 'Segoe UI', Tahoma, sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #f5f7fa; padding: 15px; }
-    .tabs { display: flex; margin-bottom: 20px; gap: 10px; }
-    .tab { flex: 1; padding: 15px; background: #e0e6ed; border-radius: 10px 10px 0 0; text-align: center; font-weight: 600; cursor: pointer; }
-    .tab.active { background: #2c3e50; color: white; }
     .container { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 25px; max-width: 900px; margin: 0 auto; }
     h1 { text-align: center; color: #2c3e50; margin-bottom: 25px; font-size: 24px; }
     .form-group { margin-bottom: 20px; }
@@ -23,6 +20,9 @@
     th { background: #34495e; color: white; font-weight: 600; }
     tr:hover { background: #f8fafc; }
     .summary { background: #e3f2fd; padding: 18px; border-radius: 12px; margin: 25px 0; text-align: center; font-size: 20px; font-weight: bold; color: #2c3e50; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
+    .tab { white-space: nowrap; padding: 12px 20px; background: #e0e6ed; border-radius: 8px; text-align: center; font-weight: 600; cursor: pointer; }
+    .tab.active { background: #2c3e50; color: white; }
     @media (max-width: 600px) {
       .container { padding: 15px; margin: 10px; }
       table { font-size: 14px; }
@@ -35,115 +35,68 @@
   <div class="container">
     <h1>📝 سجل أيام العمل</h1>
     
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab('work')">أيام العمل</div>
-      <div class="tab" onclick="switchTab('transfers')">الانتقالات</div>
-    </div>
+    <div class="tabs" id="siteTabs"></div>
     
     <div class="success" id="successMsg">✓ تم الحفظ بنجاح!</div>
     
-    <div id="workForm">
-      <div class="form-group">
-        <label for="workDate">التاريخ</label>
-        <input type="date" id="workDate" required>
-      </div>
-      
-      <div class="form-group">
-        <label for="workLocation">الموقع</label>
-        <select id="workLocation" required>
-          <option value="">اختر الموقع</option>
-          <option value="موقع الحافلات">موقع الحافلات</option>
-          <option value="موقع النصر">موقع النصر</option>
-          <option value="المكتب">المكتب</option>
-          <option value="أخرى">أخرى</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label for="workStatus">الحالة</label>
-        <select id="workStatus" required>
-          <option value="">اختر الحالة</option>
-          <option value="✓ عمل">✓ عمل (سبت)</option>
-          <option value="✗ إجازة رسمية">✗ إجازة رسمية</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label for="workNotes">ملاحظات</label>
-        <textarea id="workNotes" rows="2" placeholder="مثال: سبت عمل، عيد الشرطة..."></textarea>
-      </div>
-      
-      <button onclick="saveWorkDay()">حفظ يوم العمل</button>
+    <div class="form-group">
+      <label for="selectedSite">اختر الموقع</label>
+      <select id="selectedSite" onchange="loadRecords()" style="font-weight: bold;"></select>
     </div>
     
-    <div id="transfersForm" style="display:none;">
-      <div class="form-group">
-        <label for="transferDate">التاريخ</label>
-        <input type="date" id="transferDate" required>
-      </div>
-      
-      <div class="form-group">
-        <label for="transferFrom">من موقع</label>
-        <select id="transferFrom" required>
-          <option value="">اختر الموقع</option>
-          <option value="المكتب">المكتب</option>
-          <option value="موقع الحافلات">موقع الحافلات</option>
-          <option value="موقع النصر">موقع النصر</option>
-          <option value="أخرى">أخرى</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label for="transferTo">إلى موقع</label>
-        <select id="transferTo" required>
-          <option value="">اختر الموقع</option>
-          <option value="المكتب">المكتب</option>
-          <option value="موقع الحافلات">موقع الحافلات</option>
-          <option value="موقع النصر">موقع النصر</option>
-          <option value="أخرى">أخرى</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label for="transferAmount">المبلغ (ج.م)</label>
-        <input type="number" id="transferAmount" min="0" placeholder="0" required>
-      </div>
-      
-      <div class="form-group">
-        <label for="transferMethod">وسيلة المواصلات</label>
-        <select id="transferMethod" required>
-          <option value="">اختر الوسيلة</option>
-          <option value="تاكسي">تاكسي</option>
-          <option value="مواصلات">مواصلات</option>
-          <option value="أوبر/كريم">أوبر/كريم</option>
-          <option value="سيارة خاصة">سيارة خاصة</option>
-          <option value="أخرى">أخرى</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label for="transferNotes">ملاحظات</label>
-        <textarea id="transferNotes" rows="2" placeholder="مثال: انتقال للموقع، عودة بعد العمل..."></textarea>
-      </div>
-      
-      <button onclick="saveTransfer()">حفظ الانتقال</button>
+    <div class="form-group">
+      <label for="workDate">التاريخ</label>
+      <input type="date" id="workDate" required>
     </div>
+    
+    <div class="form-group">
+      <label for="workDay">اليوم</label>
+      <input type="text" id="workDay" placeholder="مثلاً: خميس" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="workHours">عدد الساعات</label>
+      <input type="number" id="workHours" min="1" max="24" value="8" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="workExpenses">المصروفات (ج.م)</label>
+      <input type="number" id="workExpenses" min="0" value="0" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="workStatus">الحالة</label>
+      <select id="workStatus" required>
+        <option value="✓ عمل">✓ عمل</option>
+        <option value="✗ إجازة رسمية">✗ إجازة رسمية</option>
+        <option value="✗ إجازة عادية">✗ إجازة عادية</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="workNotes">ملاحظات</label>
+      <textarea id="workNotes" rows="2" placeholder="مثال: سبت عمل، اجتماع..."></textarea>
+    </div>
+    
+    <button onclick="saveEntry()">حفظ اليوم</button>
     
     <div class="summary" id="summary">جارٍ التحميل...</div>
     
     <h2 style="margin-top: 30px; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">السجلات الأخيرة</h2>
     <div id="records" style="overflow-x: auto;">
       <table>
-        <thead id="recordsHead">
+        <thead>
           <tr>
             <th>التاريخ</th>
-            <th>الموقع</th>
+            <th>اليوم</th>
+            <th>الساعات</th>
+            <th>المصروفات</th>
             <th>الحالة</th>
             <th>الملاحظات</th>
           </tr>
         </thead>
         <tbody id="recordsBody">
-          <tr><td colspan="4" style="text-align:center; color:#95a5a6; padding:20px;">جارٍ التحميل...</td></tr>
+          <tr><td colspan="6" style="text-align:center; color:#95a5a6; padding:20px;">جارٍ التحميل...</td></tr>
         </tbody>
       </table>
     </div>
@@ -151,34 +104,64 @@
 
   <script>
     // الصق الرابط الجديد هنا من جوجل شيتس
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSeErO76zT8LAHKSlffyJtMfkLvZ6dNYYplCswCSd5-tZsPzMQ980dZbjd7OXnHt2u/exec';
+    const SCRIPT_URL = 'الرابط_الجديد_من_جوجل_شيتس';
     
+    // التاريخ التلقائي
     document.getElementById('workDate').valueAsDate = new Date();
-    document.getElementById('transferDate').valueAsDate = new Date();
     
-    function switchTab(tab) {
-      document.getElementById('workForm').style.display = tab === 'work' ? 'block' : 'none';
-      document.getElementById('transfersForm').style.display = tab === 'transfers' ? 'block' : 'none';
-      
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
-      
-      loadRecords(tab);
+    // تحميل قائمة المواقع
+    function loadSites() {
+      fetch(`${SCRIPT_URL}?action=getSites`)
+      .then(response => response.json())
+      .then(sites => {
+        const select = document.getElementById('selectedSite');
+        const tabs = document.getElementById('siteTabs');
+        
+        sites.forEach(site => {
+          // إضافة للقائمة المنسدلة
+          const option = document.createElement('option');
+          option.value = site;
+          option.textContent = site;
+          select.appendChild(option);
+          
+          // إضافة للتبويبات
+          const tab = document.createElement('div');
+          tab.className = 'tab';
+          tab.textContent = site;
+          tab.onclick = () => {
+            document.getElementById('selectedSite').value = site;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            loadRecords();
+          };
+          tabs.appendChild(tab);
+          
+          // تفعيل التبويب الأول
+          if (sites.indexOf(site) === 0) {
+            tab.classList.add('active');
+          }
+        });
+        
+        loadRecords();
+      })
+      .catch(error => console.error('Error loading sites:', error));
     }
     
-    function saveWorkDay() {
+    function saveEntry() {
       const date = document.getElementById('workDate').value;
-      const location = document.getElementById('workLocation').value;
+      const day = document.getElementById('workDay').value;
+      const hours = document.getElementById('workHours').value;
+      const expenses = document.getElementById('workExpenses').value;
       const status = document.getElementById('workStatus').value;
       const notes = document.getElementById('workNotes').value || '-';
+      const site = document.getElementById('selectedSite').value;
       
-      if (!date || !location || !status) {
+      if (!date || !day || !hours || !site) {
         alert('⚠️ يرجى ملء جميع الحقول المطلوبة');
         return;
       }
       
-      // بناء الرابط مع البيانات كـ query parameters
-      const url = `${SCRIPT_URL}?action=add&sheet=أيام العمل&date=${encodeURIComponent(date)}&location=${encodeURIComponent(location)}&status=${encodeURIComponent(status)}&notes=${encodeURIComponent(notes)}`;
+      const url = `${SCRIPT_URL}?action=add&sheet=${encodeURIComponent(site)}&date=${encodeURIComponent(date)}&day=${encodeURIComponent(day)}&hours=${encodeURIComponent(hours)}&expenses=${encodeURIComponent(expenses)}&status=${encodeURIComponent(status)}&notes=${encodeURIComponent(notes)}`;
       
       fetch(url)
       .then(response => response.json())
@@ -189,7 +172,7 @@
             document.getElementById('successMsg').style.display = 'none';
             document.getElementById('workNotes').value = '';
             document.getElementById('workDate').valueAsDate = new Date();
-            loadRecords('work');
+            loadRecords();
           }, 1500);
         } else {
           alert('❌ حدث خطأ: ' + (result.error || 'غير معروف'));
@@ -201,55 +184,11 @@
       });
     }
     
-    function saveTransfer() {
-      const date = document.getElementById('transferDate').value;
-      const from = document.getElementById('transferFrom').value;
-      const to = document.getElementById('transferTo').value;
-      const amount = document.getElementById('transferAmount').value;
-      const method = document.getElementById('transferMethod').value;
-      const notes = document.getElementById('transferNotes').value || '-';
+    function loadRecords() {
+      const site = document.getElementById('selectedSite').value;
+      if (!site) return;
       
-      if (!date || !from || !to || !amount || !method) {
-        alert('⚠️ يرجى ملء جميع الحقول المطلوبة');
-        return;
-      }
-      
-      // بناء الرابط مع البيانات كـ query parameters
-      const url = `${SCRIPT_URL}?action=add&sheet=الانتقالات&date=${encodeURIComponent(date)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&amount=${encodeURIComponent(amount)}&method=${encodeURIComponent(method)}&notes=${encodeURIComponent(notes)}`;
-      
-      fetch(url)
-      .then(response => response.json())
-      .then(result => {
-        if (result.status === 'success') {
-          document.getElementById('successMsg').style.display = 'block';
-          setTimeout(() => {
-            document.getElementById('successMsg').style.display = 'none';
-            document.getElementById('transferAmount').value = '';
-            document.getElementById('transferNotes').value = '';
-            document.getElementById('transferDate').valueAsDate = new Date();
-            loadRecords('transfers');
-          }, 1500);
-        } else {
-          alert('❌ حدث خطأ: ' + (result.error || 'غير معروف'));
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('❌ فشل الحفظ. تحقق من الاتصال بالإنترنت.');
-      });
-    }
-    
-    function loadRecords(tab) {
-      const sheet = tab === 'work' ? 'أيام العمل' : 'الانتقالات';
-      
-      const head = document.getElementById('recordsHead');
-      if (tab === 'work') {
-        head.innerHTML = `<tr><th>التاريخ</th><th>الموقع</th><th>الحالة</th><th>الملاحظات</th></tr>`;
-      } else {
-        head.innerHTML = `<tr><th>التاريخ</th><th>من موقع</th><th>إلى موقع</th><th>المبلغ</th><th>الوسيلة</th></tr>`;
-      }
-      
-      const url = `${SCRIPT_URL}?sheet=${encodeURIComponent(sheet)}`;
+      const url = `${SCRIPT_URL}?sheet=${encodeURIComponent(site)}`;
       
       fetch(url)
       .then(response => response.json())
@@ -258,34 +197,39 @@
         const summary = document.getElementById('summary');
         
         if (data.length === 0) {
-          body.innerHTML = `<tr><td colspan="${tab === 'work' ? 4 : 5}" style="text-align:center; color:#95a5a6; padding:20px;">لا توجد سجلات حتى الآن</td></tr>`;
-          summary.textContent = tab === 'work' ? 'إجمالي أيام العمل: 0' : 'إجمالي الانتقالات: 0 | الإجمالي: 0 ج.م';
+          body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#95a5a6; padding:20px;">لا توجد سجلات حتى الآن</td></tr>`;
+          summary.textContent = 'إجمالي الأيام: 0 | الساعات: 0 | المصروفات: 0 ج.م';
           return;
         }
         
         let html = '';
-        let totalAmount = 0;
-        let totalCount = data.length;
+        let totalDays = data.length;
+        let totalHours = 0;
+        let totalExpenses = 0;
         
-        if (tab === 'work') {
-          data.forEach(record => {
-            html += `<tr><td>${formatDate(record.date)}</td><td>${record.location}</td><td>${record.status}</td><td>${record.notes}</td></tr>`;
-          });
-          summary.textContent = `إجمالي أيام العمل: ${totalCount} يوم`;
-        } else {
-          data.forEach(record => {
-            const amount = parseFloat(record.amount) || 0;
-            totalAmount += amount;
-            html += `<tr><td>${formatDate(record.date)}</td><td>${record.from}</td><td>${record.to}</td><td>${amount.toLocaleString()} ج.م</td><td>${record.method}</td></tr>`;
-          });
-          summary.textContent = `إجمالي الانتقالات: ${totalCount} | الإجمالي: ${totalAmount.toLocaleString()} ج.م`;
-        }
+        data.forEach(record => {
+          const hours = parseFloat(record.hours) || 0;
+          const expenses = parseFloat(record.expenses) || 0;
+          
+          totalHours += hours;
+          totalExpenses += expenses;
+          
+          html += `<tr>
+            <td>${formatDate(record.date)}</td>
+            <td>${record.day}</td>
+            <td>${hours} ساعة</td>
+            <td>${expenses.toLocaleString()} ج.م</td>
+            <td>${record.status}</td>
+            <td>${record.notes}</td>
+          </tr>`;
+        });
         
         body.innerHTML = html;
+        summary.textContent = `إجمالي الأيام: ${totalDays} | الساعات: ${totalHours} | المصروفات: ${totalExpenses.toLocaleString()} ج.م`;
       })
       .catch(error => {
         console.error('Load error:', error);
-        document.getElementById('recordsBody').innerHTML = `<tr><td colspan="${tab === 'work' ? 4 : 5}" style="text-align:center; color:#e74c3c; padding:20px;">خطأ في التحميل</td></tr>`;
+        document.getElementById('recordsBody').innerHTML = `<tr><td colspan="6" style="text-align:center; color:#e74c3c; padding:20px;">خطأ في التحميل</td></tr>`;
         document.getElementById('summary').textContent = 'حدث خطأ في الاتصال';
       });
     }
@@ -296,7 +240,8 @@
       return date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' });
     }
     
-    window.onload = () => loadRecords('work');
+    // تحميل قائمة المواقع عند فتح الصفحة
+    window.onload = loadSites;
   </script>
 </body>
 </html>
