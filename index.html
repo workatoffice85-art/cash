@@ -150,7 +150,7 @@
   </div>
 
   <script>
-    // ⚠️ الصق الرابط الجديد هنا بعد إعادة النشر (من غير أي مسافات)
+    // الصق الرابط الجديد هنا من جوجل شيتس
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSeErO76zT8LAHKSlffyJtMfkLvZ6dNYYplCswCSd5-tZsPzMQ980dZbjd7OXnHt2u/exec';
     
     document.getElementById('workDate').valueAsDate = new Date();
@@ -167,27 +167,21 @@
     }
     
     function saveWorkDay() {
-      const data = {
-        date: document.getElementById('workDate').value,
-        location: document.getElementById('workLocation').value,
-        status: document.getElementById('workStatus').value,
-        notes: document.getElementById('workNotes').value || '-'
-      };
+      const date = document.getElementById('workDate').value;
+      const location = document.getElementById('workLocation').value;
+      const status = document.getElementById('workStatus').value;
+      const notes = document.getElementById('workNotes').value || '-';
       
-      if (!data.date || !data.location || !data.status) {
+      if (!date || !location || !status) {
         alert('⚠️ يرجى ملء جميع الحقول المطلوبة');
         return;
       }
       
-      fetch(SCRIPT_URL + '?sheet=أيام العمل', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
+      // بناء الرابط مع البيانات كـ query parameters
+      const url = `${SCRIPT_URL}?action=add&sheet=أيام العمل&date=${encodeURIComponent(date)}&location=${encodeURIComponent(location)}&status=${encodeURIComponent(status)}&notes=${encodeURIComponent(notes)}`;
+      
+      fetch(url)
+      .then(response => response.json())
       .then(result => {
         if (result.status === 'success') {
           document.getElementById('successMsg').style.display = 'block';
@@ -198,39 +192,33 @@
             loadRecords('work');
           }, 1500);
         } else {
-          alert('❌ حدث خطأ: ' + (result.message || 'غير معروف'));
+          alert('❌ حدث خطأ: ' + (result.error || 'غير معروف'));
         }
       })
       .catch(error => {
-        console.error('Error details:', error);
-        alert('❌ فشل الحفظ. افتح Console (F12) وشوف التفاصيل.');
+        console.error('Error:', error);
+        alert('❌ فشل الحفظ. تحقق من الاتصال بالإنترنت.');
       });
     }
     
     function saveTransfer() {
-      const data = {
-        date: document.getElementById('transferDate').value,
-        from: document.getElementById('transferFrom').value,
-        to: document.getElementById('transferTo').value,
-        amount: document.getElementById('transferAmount').value,
-        method: document.getElementById('transferMethod').value,
-        notes: document.getElementById('transferNotes').value || '-'
-      };
+      const date = document.getElementById('transferDate').value;
+      const from = document.getElementById('transferFrom').value;
+      const to = document.getElementById('transferTo').value;
+      const amount = document.getElementById('transferAmount').value;
+      const method = document.getElementById('transferMethod').value;
+      const notes = document.getElementById('transferNotes').value || '-';
       
-      if (!data.date || !data.from || !data.to || !data.amount || !data.method) {
+      if (!date || !from || !to || !amount || !method) {
         alert('⚠️ يرجى ملء جميع الحقول المطلوبة');
         return;
       }
       
-      fetch(SCRIPT_URL + '?sheet=الانتقالات', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
+      // بناء الرابط مع البيانات كـ query parameters
+      const url = `${SCRIPT_URL}?action=add&sheet=الانتقالات&date=${encodeURIComponent(date)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&amount=${encodeURIComponent(amount)}&method=${encodeURIComponent(method)}&notes=${encodeURIComponent(notes)}`;
+      
+      fetch(url)
+      .then(response => response.json())
       .then(result => {
         if (result.status === 'success') {
           document.getElementById('successMsg').style.display = 'block';
@@ -242,12 +230,12 @@
             loadRecords('transfers');
           }, 1500);
         } else {
-          alert('❌ حدث خطأ: ' + (result.message || 'غير معروف'));
+          alert('❌ حدث خطأ: ' + (result.error || 'غير معروف'));
         }
       })
       .catch(error => {
-        console.error('Error details:', error);
-        alert('❌ فشل الحفظ. افتح Console (F12) وشوف التفاصيل.');
+        console.error('Error:', error);
+        alert('❌ فشل الحفظ. تحقق من الاتصال بالإنترنت.');
       });
     }
     
@@ -260,8 +248,10 @@
       } else {
         head.innerHTML = `<tr><th>التاريخ</th><th>من موقع</th><th>إلى موقع</th><th>المبلغ</th><th>الوسيلة</th></tr>`;
       }
-
-      fetch(SCRIPT_URL + '?sheet=' + sheet)
+      
+      const url = `${SCRIPT_URL}?sheet=${encodeURIComponent(sheet)}`;
+      
+      fetch(url)
       .then(response => response.json())
       .then(data => {
         const body = document.getElementById('recordsBody');
