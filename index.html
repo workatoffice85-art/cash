@@ -321,94 +321,102 @@
     }
     
     // تحديث عرض السجلات
-    function updateRecordsDisplay(data) {
-      const head = document.getElementById('recordsHead');
-      const body = document.getElementById('recordsBody');
-      const summary = document.getElementById('summary');
-      
-      if (currentType.includes('أيام') || currentType.includes('شغل')) {
-        head.innerHTML = `
-          <tr>
-            <th>التاريخ</th>
-            <th>اليوم</th>
-            <th>الساعات</th>
-            <th>الحالة</th>
-            <th>السعر</th>
-            <th>الملاحظات</th>
-          </tr>
-        `;
-        
-        if (data.length === 0) {
-          body.innerHTML = `<tr><td colspan="6" class="empty-state">📭 لا توجد سجلات</td></tr>`;
-          summary.textContent = 'إجمالي أيام العمل: 0 | الإجازات: 0 | الساعات: 0';
-          return;
-        }
-        
-        let html = '';
-        let workDays = 0;
-        let holidays = 0;
-        let totalHours = 0;
-        
-        data.forEach(record => {
-          const hours = parseFloat(record.hours) || 0;
-          
-          if (record.status.includes('عمل')) workDays++;
-          else if (record.status.includes('إجازة')) holidays++;
-          
-          totalHours += hours;
-          
-          html += `<tr>
-            <td>${formatDate(record.date)}</td>
-            <td>${record.day}</td>
-            <td>${hours} ساعة</td>
-            <td>${record.status}</td>
-            <td>${record.price ? record.price + ' ج.م' : '-'}</td>
-            <td>${record.notes}</td>
-          </tr>`;
-        });
-        
-        body.innerHTML = html;
-        summary.textContent = `إجمالي أيام العمل: ${workDays} | الإجازات: ${holidays} | الساعات: ${totalHours}`;
-      } else {
-        head.innerHTML = `
-          <tr>
-            <th>التاريخ</th>
-            <th>اليوم</th>
-            <th>من موقع</th>
-            <th>إلى موقع</th>
-            <th>المبلغ</th>
-            <th>الوسيلة</th>
-          </tr>
-        `;
-        
-        if (data.length === 0) {
-          body.innerHTML = `<tr><td colspan="6" class="empty-state">📭 لا توجد سجلات</td></tr>`;
-          summary.textContent = 'إجمالي الانتقالات: 0 | المصروفات: 0 ج.م';
-          return;
-        }
-        
-        let html = '';
-        let transfersCount = data.length;
-        let totalAmount = 0;
-        
-        data.forEach(record => {
-          const amount = parseFloat(record.amount) || 0;
-          totalAmount += amount;
-          
-          html += `<tr>
-            <td>${formatDate(record.date)}</td>
-            <td>${record.day}</td>
-            <td>${record.from}</td>
-            <td>${record.to}</td>
-            <td>${amount.toLocaleString()} ج.م</td>
-            <td>${record.method}</td>
-          </tr>`;
-        });
-        
-        body.innerHTML = html;
-        summary.textContent = `إجمالي الانتقالات: ${transfersCount} | المصروفات: ${totalAmount.toLocaleString()} ج.م`;
-      }
+    // تحديث عرض السجلات (مصححة - مع تحقق من نوع البيانات)
+function updateRecordsDisplay(data) {
+  const head = document.getElementById('recordsHead');
+  const body = document.getElementById('recordsBody');
+  const summary = document.getElementById('summary');
+  
+  // التحقق من أن البيانات مصفوفة
+  if (!Array.isArray(data)) {
+    body.innerHTML = `<tr><td colspan="6" class="empty-state" style="color:#e74c3c;">❌ خطأ في البيانات</td></tr>`;
+    document.getElementById('summary').textContent = 'حدث خطأ في تحميل البيانات';
+    return;
+  }
+  
+  if (currentType.includes('أيام') || currentType.includes('شغل')) {
+    head.innerHTML = `
+      <tr>
+        <th>التاريخ</th>
+        <th>اليوم</th>
+        <th>الساعات</th>
+        <th>الحالة</th>
+        <th>السعر</th>
+        <th>الملاحظات</th>
+      </tr>
+    `;
+    
+    if (data.length === 0) {
+      body.innerHTML = `<tr><td colspan="6" class="empty-state">📭 لا توجد سجلات</td></tr>`;
+      summary.textContent = 'إجمالي أيام العمل: 0 | الإجازات: 0 | الساعات: 0';
+      return;
     }
+    
+    let html = '';
+    let workDays = 0;
+    let holidays = 0;
+    let totalHours = 0;
+    
+    data.forEach(record => {
+      const hours = parseFloat(record.hours) || 0;
+      
+      if (record.status.includes('عمل')) workDays++;
+      else if (record.status.includes('إجازة')) holidays++;
+      
+      totalHours += hours;
+      
+      html += `<tr>
+        <td>${formatDate(record.date)}</td>
+        <td>${record.day}</td>
+        <td>${hours} ساعة</td>
+        <td>${record.status}</td>
+        <td>${record.price ? record.price + ' ج.م' : '-'}</td>
+        <td>${record.notes}</td>
+      </tr>`;
+    });
+    
+    body.innerHTML = html;
+    summary.textContent = `إجمالي أيام العمل: ${workDays} | الإجازات: ${holidays} | الساعات: ${totalHours}`;
+  } else {
+    head.innerHTML = `
+      <tr>
+        <th>التاريخ</th>
+        <th>اليوم</th>
+        <th>من موقع</th>
+        <th>إلى موقع</th>
+        <th>المبلغ</th>
+        <th>الوسيلة</th>
+      </tr>
+    `;
+    
+    if (data.length === 0) {
+      body.innerHTML = `<tr><td colspan="6" class="empty-state">📭 لا توجد سجلات</td></tr>`;
+      summary.textContent = 'إجمالي الانتقالات: 0 | المصروفات: 0 ج.م';
+      return;
+    }
+    
+    let html = '';
+    let transfersCount = data.length;
+    let totalAmount = 0;
+    
+    data.forEach(record => {
+      const amount = parseFloat(record.amount) || 0;
+      totalAmount += amount;
+      
+      html += `<tr>
+        <td>${formatDate(record.date)}</td>
+        <td>${record.day}</td>
+        <td>${record.from}</td>
+        <td>${record.to}</td>
+        <td>${amount.toLocaleString()} ج.م</td>
+        <td>${record.method}</td>
+      </tr>`;
+    });
+    
+    body.innerHTML = html;
+    summary.textContent = `إجمالي الانتقالات: ${transfersCount} | المصروفات: ${totalAmount.toLocaleString()} ج.م`;
+  }
+}
     
     // حفظ يوم العمل
     function saveWorkDay() {
